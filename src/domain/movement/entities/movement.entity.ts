@@ -8,12 +8,12 @@ import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne } fro
 export class Movement extends AggregateRoot{
 
     @ManyToOne(()=> Inventory,{eager:true})
-    @JoinColumn()
+    @JoinColumn({name:'inventory_id'})
     inventory:Inventory
     
 
     @ManyToOne(()=> User,{eager:true})
-    @JoinColumn()
+    @JoinColumn({name:'user_id'})
     user: User;
     
     @Column()

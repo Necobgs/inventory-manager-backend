@@ -14,7 +14,6 @@ export class User extends AggregateRoot{
     @Column()
     password:string;
 
-
     @BeforeInsert()
     async hashPassword(){
         this.password = await hashPassword(this.password)

@@ -293,7 +293,7 @@ function evaluateOperatorForNestedRelation<T extends ObjectLiteral>(
   operator: Operator,
   expectedValue: any,
 ): void {
-  const path = `"${relationAlias}_sub"."${field}"`;
+  const path = `"${relationAlias}"."${field}"`;
 
   const { condition, params } = generateSqlForOperator(
     field,
@@ -310,22 +310,27 @@ function evaluateOperatorForNestedRelation<T extends ObjectLiteral>(
   }
 
 
-  const joinTableName = relationMetadata.joinTableName || `${targetMetadata.tableName}_${relationMetadata.propertyName}`;
-  const joinColumn = relationMetadata.joinColumns?.[0]?.databaseName || `${targetMetadata.tableName}Id`;
-  const inverseJoinColumn = relationMetadata.inverseJoinColumns?.[0]?.databaseName || `${relationMetadata.inverseEntityMetadata.tableName}Id`;
+  if (relationMetadata.isManyToOne || relationMetadata.isOneToOne) {
+    qb.leftJoinAndSelect(`${targetAlias}.${relation}`, relationAlias);
+    qb.andWhere(condition, params);
+  } else {
+    const joinTableName = relationMetadata.joinTableName || `${targetMetadata.tableName}_${relationMetadata.propertyName}`;
+    const joinColumn = relationMetadata.joinColumns?.[0]?.databaseName || `${targetMetadata.tableName}Id`;
+    const inverseJoinColumn = relationMetadata.inverseJoinColumns?.[0]?.databaseName || `${relationMetadata.inverseEntityMetadata.tableName}Id`;
 
-  qb.andWhere(
-    `"${targetAlias}"."id" IN (
-      SELECT "${targetAlias}_sub"."id"
-      FROM "${targetMetadata.givenTableName}" "${targetAlias}_sub"
-      JOIN "${joinTableName}" "${relationAlias}_join"
-      ON "${relationAlias}_join"."${joinColumn}" = "${targetAlias}_sub"."id"
-      JOIN "${relationMetadata.inverseEntityMetadata.tableName}" "${relationAlias}_sub"
-      ON "${relationAlias}_sub"."id" = "${relationAlias}_join"."${inverseJoinColumn}"
-      WHERE ${condition}
-    )`,
-    params,
-  );
+    qb.andWhere(
+      `"${targetAlias}"."id" IN (
+        SELECT "${targetAlias}_sub"."id"
+        FROM "${targetMetadata.givenTableName}" "${targetAlias}_sub"
+        JOIN "${joinTableName}" "${relationAlias}_join"
+        ON "${relationAlias}_join"."${joinColumn}" = "${targetAlias}_sub"."id"
+        JOIN "${relationMetadata.inverseEntityMetadata.tableName}" "${relationAlias}_sub"
+        ON "${relationAlias}_sub"."id" = "${relationAlias}_join"."${inverseJoinColumn}"
+        WHERE ${condition}
+      )`,
+      params,
+    );
+  }
 }
 
 function generateSqlForOperator(

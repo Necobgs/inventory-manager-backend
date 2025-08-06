@@ -24,7 +24,7 @@ export class Inventory extends AggregateRoot{
     description:string;
     
     @ManyToOne(() => Category,{eager:true})
-    @JoinColumn()
+    @JoinColumn({name:'category_id'})
     category:Category;
 
     @BeforeInsert()

@@ -23,10 +23,10 @@ export class MovementController {
     return this.movementService.findOne(+id);
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateMovementDto: UpdateMovementDto) {
-  //   return this.movementService.update(+id, updateMovementDto);
-  // }
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateMovementDto: UpdateMovementDto,@Request() req) {
+    return this.movementService.update(+id, updateMovementDto,req);
+  }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
