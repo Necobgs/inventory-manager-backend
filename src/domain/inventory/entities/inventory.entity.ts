@@ -1,5 +1,6 @@
 import { Category } from "src/domain/category/entities/category.entity";
 import { AggregateRoot } from "src/domain/shared/aggregate-root";
+import { Supplier } from "src/domain/supplier/entities/supplier.entity";
 import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne } from "typeorm";
 
 @Entity({name:'inventories'})
@@ -26,6 +27,10 @@ export class Inventory extends AggregateRoot{
     @ManyToOne(() => Category,{eager:true})
     @JoinColumn({name:'category_id'})
     category:Category;
+
+    @ManyToOne(()=> Supplier,{eager:true})
+    @JoinColumn({name:'supplier_id'})
+    supplier:Supplier;
 
     @BeforeInsert()
     @BeforeUpdate()

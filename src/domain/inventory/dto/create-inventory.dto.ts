@@ -30,5 +30,10 @@ export class CreateInventoryDto extends AggregateRootDto{
     @IsInt()
     @Min(0)
     category_id:number;
+
+    @IsNotEmpty()
+    @IsInt()
+    @Min(0)
+    supplier_id:number;
     
 }

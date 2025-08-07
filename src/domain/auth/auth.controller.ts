@@ -14,7 +14,6 @@ export class AuthController {
     if (!user) {
       throw new UnauthorizedException();
     }
-    console.log(user)
     return this.authService.login(user);
   }
 }

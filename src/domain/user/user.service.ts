@@ -39,4 +39,15 @@ export class UserService {
 
     return await this.repository.save(user);
   }
+
+  async update(id:number,dto:UpdateUserDto){
+    const user = await this.findOne(id);
+    const updatedUser = this.repository.merge(user,dto);
+    return await this.repository.save(updatedUser);
+  }
+
+  async delete(id:number){
+    const user = await this.findOne(id);
+    return await this.repository.remove(user);
+  }
 }

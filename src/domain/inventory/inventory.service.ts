@@ -4,13 +4,15 @@ import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import InventoryRepository from './inventory.repository';
 import { FilterDto } from '../shared/filter-dto';
 import { CategoryService } from '../category/category.service';
+import { SupplierService } from '../supplier/supplier.service';
 
 @Injectable()
 export class InventoryService {
 
   constructor(
     private readonly inventoryRepository:InventoryRepository,
-    private readonly categoryService:CategoryService
+    private readonly categoryService:CategoryService,
+    private readonly supplierService:SupplierService
   ){}
 
   async exists(description){
@@ -20,10 +22,10 @@ export class InventoryService {
   async create(dto: CreateInventoryDto) {
     const existsInventory = await this.exists(dto.description);
     const category = await this.categoryService.findOne(dto.category_id);
-    if(!category) throw new BadRequestException('Category not found');
+    const supplier = await this.supplierService.findOne(dto.supplier_id)
     if(existsInventory) throw new BadRequestException(`Inventory ${dto.description} already exists`) 
     const inventory = this.inventoryRepository.create();
-    Object.assign(inventory,dto,{category})
+    Object.assign(inventory,dto,{category},{supplier})
     return await this.inventoryRepository.save(inventory);
   }
 

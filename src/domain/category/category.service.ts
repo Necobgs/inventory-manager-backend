@@ -25,7 +25,7 @@ export class CategoryService {
   }
 
   async findOne(id: number) {
-    return await this.categoryRepository.filterOne({id});
+    return await this.categoryRepository.findOneByOrFail({id});
   }
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {

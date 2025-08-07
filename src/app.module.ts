@@ -10,6 +10,7 @@ import { CategoryModule } from './domain/category/category.module';
 import { InventoryModule } from './domain/inventory/inventory.module';
 import { MovementModule } from './domain/movement/movement.module';
 import { join } from 'path';
+import { SupplierModule } from './domain/supplier/supplier.module';
 
 
 @Module({
@@ -41,7 +42,7 @@ import { join } from 'path';
         synchronize: true,
       })
     }),
-    UserModule, AuthModule, CategoryModule, InventoryModule, MovementModule],
+    UserModule, AuthModule, CategoryModule, InventoryModule, MovementModule, SupplierModule],
   controllers: [AppController],
   providers: [AppService],
 })

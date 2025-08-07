@@ -5,9 +5,14 @@ import InventoryRepository from './inventory.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Inventory } from './entities/inventory.entity';
 import { CategoryModule } from '../category/category.module';
+import { SupplierModule } from '../supplier/supplier.module';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Inventory]),CategoryModule],
+  imports:[
+    TypeOrmModule.forFeature([Inventory]),
+    CategoryModule,
+    SupplierModule
+  ],
   controllers: [InventoryController],
   providers: [InventoryService,InventoryRepository],
   exports:[InventoryService],
