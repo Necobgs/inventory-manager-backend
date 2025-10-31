@@ -1,5 +1,5 @@
 import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
-import { AggregateRootDto } from "src/domain/shared/aggregate-root.dto";
+import { AggregateRootDto } from "../../shared/aggregate-root.dto";
 
 
 export class CreateInventoryDto extends AggregateRootDto{

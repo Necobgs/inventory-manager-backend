@@ -1,6 +1,6 @@
-import { Category } from "src/domain/category/entities/category.entity";
-import { AggregateRoot } from "src/domain/shared/aggregate-root";
-import { Supplier } from "src/domain/supplier/entities/supplier.entity";
+import { Category } from "../../category/entities/category.entity";
+import { AggregateRoot } from "../../shared/aggregate-root";
+import { Supplier } from "../../supplier/entities/supplier.entity";
 import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne } from "typeorm";
 
 @Entity({name:'inventories'})

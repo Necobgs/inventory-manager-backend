@@ -1,5 +1,5 @@
 import { IsInt, IsNotEmpty, IsPositive, NotEquals } from "class-validator";
-import { AggregateRootDto } from "src/domain/shared/aggregate-root.dto";
+import { AggregateRootDto } from "../../shared/aggregate-root.dto";
 
 
 export class CreateMovementDto extends AggregateRootDto{

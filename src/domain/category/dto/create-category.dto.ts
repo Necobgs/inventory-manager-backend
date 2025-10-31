@@ -1,5 +1,5 @@
-import { IsBoolean, IsNotEmpty, IsOptional, isString, IsString } from "class-validator";
-import { AggregateRootDto } from "src/domain/shared/aggregate-root.dto";
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { AggregateRootDto } from "../../shared/aggregate-root.dto";
 
 
 export class CreateCategoryDto extends AggregateRootDto{

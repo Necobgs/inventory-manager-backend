@@ -1,5 +1,5 @@
-import { AggregateRoot } from "src/domain/shared/aggregate-root";
-import { hashPassword } from "src/utils/hash-password";
+import { AggregateRoot } from "../../shared/aggregate-root";
+import { hashPassword } from "../../../utils/hash-password";
 import { BeforeInsert, Column, Entity } from "typeorm";
 
 @Entity()
@@ -17,7 +17,7 @@ export class User extends AggregateRoot{
     @Column({default:true})
     enabled: boolean;
 
-    @Column({nullable:false})
+    @Column({nullable:true})
     phone: string;
 
     @BeforeInsert()

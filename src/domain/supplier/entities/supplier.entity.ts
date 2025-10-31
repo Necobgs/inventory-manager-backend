@@ -1,4 +1,4 @@
-import { AggregateRoot } from "src/domain/shared/aggregate-root";
+import { AggregateRoot } from "../../shared/aggregate-root";
 import { Column, Entity } from "typeorm";
 
 

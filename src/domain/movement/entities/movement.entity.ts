@@ -1,6 +1,6 @@
-import { Inventory } from "src/domain/inventory/entities/inventory.entity";
-import { AggregateRoot } from "src/domain/shared/aggregate-root";
-import { User } from "src/domain/user/entities/user.entity";
+import { Inventory } from "../../inventory/entities/inventory.entity";
+import { AggregateRoot } from "../../shared/aggregate-root";
+import { User } from "../../user/entities/user.entity";
 import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne } from "typeorm";
 
 

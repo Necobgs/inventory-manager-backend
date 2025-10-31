@@ -1,5 +1,5 @@
 import { IsBoolean, IsNotEmpty, IsOptional, IsPhoneNumber, IsString, Length } from "class-validator";
-import { AggregateRootDto } from "src/domain/shared/aggregate-root.dto";
+import { AggregateRootDto } from "../../shared/aggregate-root.dto";
 
 
 export class CreateSupplierDto extends AggregateRootDto{

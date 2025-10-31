@@ -1,4 +1,4 @@
-import { isObject } from 'src/utils/is-object';
+import { isObject } from '../../utils/is-object';
 import { EntityTarget, ObjectLiteral, SelectQueryBuilder } from 'typeorm';
 
 export type LogicalOperator = '$or' | '$and' | '$not';
