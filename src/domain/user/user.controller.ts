@@ -31,10 +31,4 @@ export class UserController {
   async update(@Param("id") id:number, dto:UpdateUserDto){
     return await this.userService.update(+id,dto)
   }
-
-  @Delete(':id')
-  async delete(@Param("id") id:number){
-    return await this.userService.delete(+id)
-  }
-
 }

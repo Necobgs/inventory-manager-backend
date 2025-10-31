@@ -13,5 +13,11 @@ export class Supplier extends AggregateRoot{
 
     @Column()
     phone:string;
+    
+    @Column({nullable:true})
+    cep:string;
+
+    @Column({default:true})
+    enabled:boolean
 
 }

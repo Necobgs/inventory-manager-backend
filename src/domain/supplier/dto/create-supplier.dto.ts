@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsPhoneNumber, IsString, Length } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsOptional, IsPhoneNumber, IsString, Length } from "class-validator";
 import { AggregateRootDto } from "src/domain/shared/aggregate-root.dto";
 
 
@@ -17,5 +17,13 @@ export class CreateSupplierDto extends AggregateRootDto{
     @IsString()
     @IsPhoneNumber('BR')
     phone:string;
+
+    @IsOptional()
+    @IsString()
+    cep:string;
+
+    @IsOptional()
+    @IsBoolean()
+    enabled:boolean;
 
 }

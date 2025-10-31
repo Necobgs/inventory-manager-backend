@@ -27,9 +27,4 @@ export class SupplierController {
   update(@Param('id') id: string, @Body() updateSupplierDto: UpdateSupplierDto) {
     return this.supplierService.update(+id, updateSupplierDto);
   }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.supplierService.remove(+id);
-  }
 }

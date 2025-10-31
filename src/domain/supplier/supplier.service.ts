@@ -27,9 +27,4 @@ export class SupplierService {
     const updatedSupplier = this.supplierRepository.merge(supplier,dto);
     return await this.supplierRepository.save(updatedSupplier)
   }
-
-  async remove(id: number) {
-    const supplier = await this.findOne(id);
-    return await this.supplierRepository.remove(supplier);
-  }
 }

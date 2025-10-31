@@ -12,4 +12,12 @@ export class CreateCategoryDto extends AggregateRootDto{
     @IsBoolean()
     enabled:boolean;
 
+    @IsOptional()
+    @IsString()
+    title:string;
+
+    @IsOptional()
+    @IsString()
+    color:string;
+
 }

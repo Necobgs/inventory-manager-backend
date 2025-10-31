@@ -34,8 +34,4 @@ export class CategoryService {
     const updatedCateogry = this.categoryRepository.merge(category,updateCategoryDto)
     return this.categoryRepository.save(updatedCateogry);
   }
-
-  async remove(id: number) {
-    return await this.update(id,{enabled:false})
-  }
 }

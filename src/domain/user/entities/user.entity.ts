@@ -14,6 +14,12 @@ export class User extends AggregateRoot{
     @Column()
     password:string;
 
+    @Column({default:true})
+    enabled: boolean;
+
+    @Column({nullable:false})
+    phone: string;
+
     @BeforeInsert()
     async hashPassword(){
         this.password = await hashPassword(this.password)
