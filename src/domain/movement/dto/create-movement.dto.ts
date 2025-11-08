@@ -4,14 +4,14 @@ import { AggregateRootDto } from "../../shared/aggregate-root.dto";
 
 export class CreateMovementDto extends AggregateRootDto{
 
-    @IsInt()
-    @IsPositive()
-    @IsNotEmpty()
+    @IsInt({message:"Id do inventário deve ser int"})
+    @IsPositive({message:"Id do inventário deve ser positivo"})
+    @IsNotEmpty({message:"Id do inverátio não deve ser vazio"})
     inventory_id:number;
     
-    @IsInt()
-    @IsNotEmpty()
-    @NotEquals(0)
+    @IsInt({message:"Id do inventário deve ser int"})
+    @IsPositive({message:"Id do inventário deve ser positivo"})
+    @NotEquals(0,{message:"Id do inventário não deve ser 0"})
     quantity: number;
 
 }

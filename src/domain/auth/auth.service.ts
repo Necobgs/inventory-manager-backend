@@ -10,7 +10,7 @@ export class AuthService {
   constructor(private jwtService: JwtService,private readonly userService:UserService) {}
 
   async login(user: any) {
-    const payload = { id: user.id, sub: user.email };
+    const payload = { id: user.id, sub: user.name };
     return {
       access_token: this.jwtService.sign(payload),
     };
@@ -20,7 +20,7 @@ export class AuthService {
 
     if(!user) throw new UnauthorizedException('Credentials not found')
     if (bcrypt.compare(dto.password,user.password)) {
-      return { id: user.id, email: user.email};
+      return { id: user.id, name: user.name};
     }
     return null;
   }

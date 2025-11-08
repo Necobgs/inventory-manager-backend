@@ -28,7 +28,12 @@ export class UserController {
   }
 
   @Patch(':id')
-  async update(@Param("id") id:number, dto:UpdateUserDto){
+  async update(@Param("id") id:string, dto:UpdateUserDto){
     return await this.userService.update(+id,dto)
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id:string){
+    return await this.userService.findOne(+id)
   }
 }

@@ -4,26 +4,26 @@ import { AggregateRootDto } from "../../shared/aggregate-root.dto";
 
 export class CreateSupplierDto extends AggregateRootDto{
 
-    @IsNotEmpty()
-    @IsString()
+    @IsNotEmpty({message:"Nome não deve ser vazio"})
+    @IsString({message:"Nome deve ser string"})
     name:string;
     
-    @IsNotEmpty()
-    @IsString()
-    @Length(14,14)
+    @IsNotEmpty({message:"CNPJ não deve ser vazio"})
+    @IsString({message:"CNPJ deve ser string"})
+    @Length(14,14,{message:"CNPJ deve conter 14 digitos"})
     cnpj:string;
 
-    @IsNotEmpty()
-    @IsString()
-    @IsPhoneNumber('BR')
+    @IsNotEmpty({message:"Telefone não pode ser vazio"})
+    @IsString({message:"Telefone deve ser string"})
+    @IsPhoneNumber('BR',{message:"Telefone deve ser padrão brasileiro"})
     phone:string;
 
     @IsOptional()
-    @IsString()
+    @IsString({message:"CEP deve ser string"})
     cep:string;
 
     @IsOptional()
-    @IsBoolean()
+    @IsBoolean({message:"Habilitado deve ser boolean"})
     enabled:boolean;
 
 }
