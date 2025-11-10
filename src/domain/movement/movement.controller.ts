@@ -9,12 +9,12 @@ export class MovementController {
   constructor(private readonly movementService: MovementService) {}
 
   @Post()
-  create(@Body() createMovementDto: CreateMovementDto, @Request() req) {
-    return this.movementService.create(createMovementDto,req);
+  create(@Body() createMovementDto: CreateMovementDto) {
+    return this.movementService.create(createMovementDto);
   }
 
   @Get()
-  findAll(@Query() filter:FilterDto) {
+  findAll(@Query("filter") filter?:FilterDto) {
     return this.movementService.findAll(filter);
   }
 
@@ -24,8 +24,8 @@ export class MovementController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMovementDto: UpdateMovementDto,@Request() req) {
-    return this.movementService.update(+id, updateMovementDto,req);
+  update(@Param('id') id: string, @Body() updateMovementDto: UpdateMovementDto) {
+    return this.movementService.update(+id, updateMovementDto);
   }
 
   @Delete(':id')

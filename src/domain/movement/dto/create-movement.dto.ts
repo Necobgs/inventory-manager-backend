@@ -1,17 +1,20 @@
-import { IsInt, IsNotEmpty, IsPositive, NotEquals } from "class-validator";
+import { IsInt, IsNotEmpty, Min } from "class-validator";
 import { AggregateRootDto } from "../../shared/aggregate-root.dto";
 
 
 export class CreateMovementDto extends AggregateRootDto{
 
-    @IsInt({message:"Id do inventário deve ser int"})
-    @IsPositive({message:"Id do inventário deve ser positivo"})
-    @IsNotEmpty({message:"Id do inverátio não deve ser vazio"})
+    @IsNotEmpty({message:"Id do item não pode ser vazio "})
+    @IsInt()
+    @Min(0,{message:"Id do item deve ser maior que zero "})
     inventory_id:number;
+
+    @IsNotEmpty({message:"Id do usuário não pode ser vazio "})
+    @IsInt()
+    @Min(0,{message:"Id do usuário deve ser maior que zero "})
+    user_id:number;
     
-    @IsInt({message:"Id do inventário deve ser int"})
-    @IsPositive({message:"Id do inventário deve ser positivo"})
-    @NotEquals(0,{message:"Id do inventário não deve ser 0"})
+    @IsInt({message:"Quantidade deve ser int"})
     quantity: number;
 
 }

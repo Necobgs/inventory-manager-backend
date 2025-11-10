@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRepository } from './user.repository';
@@ -32,7 +32,7 @@ export class UserService {
   async create(dto: CreateUserDto): Promise<User> {
     const emailExists = await this.exists({ email: dto.email });
     if (emailExists) {
-      throw new BadRequestException(`Email ${dto.email} already in use`);
+      throw new BadRequestException(`Email ${dto.email} já está sendo utilizado`);
     }
 
     const user = this.repository.create(dto);
@@ -41,7 +41,17 @@ export class UserService {
   }
 
   async update(id:number,dto:UpdateUserDto){
+
     const user = await this.findOne(id);
+    if(!user) throw new NotFoundException(`Usuário com id ${id} não encontrada`)
+
+    if (user.email !== dto.email) {
+      const emailExists = await this.exists({ email: (dto.email ? dto.email : "") });
+      if (emailExists) {
+        throw new BadRequestException(`Email ${dto.email} já está sendo utilizado`);
+      }
+    }
+
     const updatedUser = this.repository.merge(user,dto);
     return await this.repository.save(updatedUser);
   }

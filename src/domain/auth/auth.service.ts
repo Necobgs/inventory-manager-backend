@@ -18,7 +18,7 @@ export class AuthService {
   async validateUser(dto:SignInDto): Promise<any> {
     const user = await this.userService.filterOne({email:dto.email});
 
-    if(!user) throw new UnauthorizedException('Credentials not found')
+    if(!user) throw new UnauthorizedException('Email ou senha inválidos')
     if (bcrypt.compare(dto.password,user.password)) {
       return { id: user.id, name: user.name};
     }

@@ -22,14 +22,15 @@ export class InventoryService {
   async create(dto: CreateInventoryDto) {
     const existsInventory = await this.exists(dto.description);
     const category = await this.categoryService.findOne(dto.category_id);
+    if(!category) throw new BadRequestException('Categoria informada não encontrada');
     const supplier = await this.supplierService.findOne(dto.supplier_id)
-    if(existsInventory) throw new BadRequestException(`Inventory ${dto.description} already exists`) 
+    if(!supplier) throw new BadRequestException('Fornecedor informado não encontrado');
     const inventory = this.inventoryRepository.create();
     Object.assign(inventory,dto,{category},{supplier})
     return await this.inventoryRepository.save(inventory);
   }
 
-  async findAll(filter:FilterDto) {
+  async findAll(filter?:FilterDto) {
     return await this.inventoryRepository.filterAll(filter);
   }
 
@@ -39,12 +40,17 @@ export class InventoryService {
 
   async update(id: number, updateInventoryDto: UpdateInventoryDto) {
     const inventory = await this.inventoryRepository.findOneBy({id});
-    if(!inventory) throw new NotFoundException(`id ${id} can't be found`)
-    if(updateInventoryDto.category_id){
+    if(!inventory) throw new NotFoundException(`Item com id ${id} não encontrado`);
+    if (updateInventoryDto.category_id) {
       const category = await this.categoryService.findOne(updateInventoryDto.category_id);
-      if(!category) throw new BadRequestException('Category not found');
+      if(!category) throw new BadRequestException('Categoria informada não encontrada');
       inventory.category = category;
     }
+    if (updateInventoryDto.supplier_id) {
+      const supplier = await this.supplierService.findOne(updateInventoryDto.supplier_id);
+      if(!supplier) throw new BadRequestException('Fornecedor informado não encontrado');
+      inventory.supplier = supplier;
+    } 
     const updatedCateogry = this.inventoryRepository.merge(inventory,updateInventoryDto)
     return this.inventoryRepository.save(updatedCateogry);
   }
