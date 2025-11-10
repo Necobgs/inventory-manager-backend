@@ -11,6 +11,7 @@ import { InventoryModule } from './domain/inventory/inventory.module';
 import { MovementModule } from './domain/movement/movement.module';
 import { join } from 'path';
 import { SupplierModule } from './domain/supplier/supplier.module';
+import { DashboardModule } from './domain/dashboard/dashboard.module';
 
 
 @Module({
@@ -42,7 +43,7 @@ import { SupplierModule } from './domain/supplier/supplier.module';
         synchronize: true,
       })
     }),
-    UserModule, AuthModule, CategoryModule, InventoryModule, MovementModule, SupplierModule],
+    UserModule, AuthModule, CategoryModule, InventoryModule, MovementModule, SupplierModule, DashboardModule],
   controllers: [AppController],
   providers: [AppService],
 })
