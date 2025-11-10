@@ -15,12 +15,12 @@ export class CategoryService {
 
   async create(dto: CreateCategoryDto) {
     const existsCategory = await this.exists(dto.description);
-    if(existsCategory) throw new BadRequestException(`Category ${dto.description} already exists`) 
+    if(existsCategory) throw new BadRequestException(`Já existe uma categoria com essa descrição`) 
     const category = this.categoryRepository.create(dto);
     return await this.categoryRepository.save(category);
   }
 
-  async findAll(filter:FilterDto) {
+  async findAll(filter?:FilterDto) {
     return await this.categoryRepository.filterAll(filter);
   }
 
@@ -30,7 +30,7 @@ export class CategoryService {
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {
     const category = await this.categoryRepository.findOneBy({id});
-    if(!category) throw new NotFoundException(`id ${id} can't be found`)
+    if(!category) throw new NotFoundException(`Categoria com id ${id} não encontrada`)
     const updatedCateogry = this.categoryRepository.merge(category,updateCategoryDto)
     return this.categoryRepository.save(updatedCateogry);
   }

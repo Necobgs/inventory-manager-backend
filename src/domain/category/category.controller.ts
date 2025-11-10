@@ -14,7 +14,7 @@ export class CategoryController {
   }
 
   @Get()
-  findAll(@Query() filter:FilterDto) {
+  findAll(@Query("filter") filter?:FilterDto) {
     return this.categoryService.findAll(filter);
   }
 

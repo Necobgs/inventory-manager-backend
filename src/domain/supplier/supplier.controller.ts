@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { SupplierService } from './supplier.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
@@ -14,7 +14,7 @@ export class SupplierController {
   }
 
   @Get()
-  findAll(@Param() filter:FilterDto) {
+  findAll(@Query('filter') filter?:FilterDto) {
     return this.supplierService.findAll(filter);
   }
 

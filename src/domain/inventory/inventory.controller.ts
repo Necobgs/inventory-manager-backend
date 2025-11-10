@@ -14,7 +14,7 @@ export class InventoryController {
   }
 
   @Get()
-  findAll(@Query() filter:FilterDto) {
+  findAll(@Query('filter') filter?:FilterDto) {
     return this.inventoryService.findAll(filter);
   }
 

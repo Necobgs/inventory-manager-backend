@@ -10,4 +10,13 @@ export class UserDto extends AggregateRootDto{
 
   @Expose()
   email: string;
+
+  @Expose()
+  phone: string;
+
+  @Expose()
+  cep: string;
+
+  @Expose()
+  enabled: boolean;
 }

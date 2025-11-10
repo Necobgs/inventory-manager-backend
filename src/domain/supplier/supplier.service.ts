@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import SupplierRepository from './supplier.repository';
@@ -14,7 +14,7 @@ export class SupplierService {
     return await this.supplierRepository.save(supplier);
   }
 
-  async findAll(filter:FilterDto) {
+  async findAll(filter?:FilterDto) {
     return await this.supplierRepository.filterAll(filter);
   }
 
@@ -24,6 +24,7 @@ export class SupplierService {
 
   async update(id: number, dto: UpdateSupplierDto) {
     const supplier = await this.findOne(id);
+    if(!supplier) throw new NotFoundException(`Fornecedor com id ${id} não encontrado`)
     const updatedSupplier = this.supplierRepository.merge(supplier,dto);
     return await this.supplierRepository.save(updatedSupplier)
   }
