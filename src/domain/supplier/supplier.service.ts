@@ -10,14 +10,18 @@ export class SupplierService {
   constructor(private readonly supplierRepository:SupplierRepository){}
 
   async create(dto: CreateSupplierDto) {
-    let existSupplier = await this.supplierRepository.existsBy({name: dto.name})
-    if(existSupplier) throw new BadRequestException(`Já existe um fornecedor com esse nome`);
-    existSupplier = await this.supplierRepository.existsBy({cnpj: dto.cnpj})
-    if(existSupplier) throw new BadRequestException(`Já existe um fornecedor com esse CNPJ`);
-      existSupplier = await this.supplierRepository.existsBy({phone: dto.phone})
-    if(existSupplier) throw new BadRequestException(`Já existe um fornecedor com esse Telefone`);
+    let existsSupplier = false;
 
-    const supplier = this.supplierRepository.create(dto)
+    existsSupplier = await this.supplierRepository.existsBy({name: dto.name});
+    if(existsSupplier) throw new BadRequestException(`Já existe um fornecedor com esse nome`);
+
+    existsSupplier = await this.supplierRepository.existsBy({cnpj: dto.cnpj});
+    if(existsSupplier) throw new BadRequestException(`Já existe um fornecedor com esse CNPJ`);
+
+    existsSupplier = await this.supplierRepository.existsBy({phone: dto.phone});
+    if(existsSupplier) throw new BadRequestException(`Já existe um fornecedor com esse Telefone`);
+
+    const supplier = this.supplierRepository.create(dto);
     return await this.supplierRepository.save(supplier);
   }
 
@@ -32,27 +36,27 @@ export class SupplierService {
   }
 
   async update(id: number, dto: UpdateSupplierDto) {
-    let existSupplier = false;
+    let existsSupplier = false;
 
     const supplier = await this.findOne(id);
     if(!supplier) throw new NotFoundException(`Fornecedor com id ${id} não encontrado`);
 
-    if (supplier.name !== dto.name) {
-      existSupplier = await this.supplierRepository.existsBy({name: dto.name})
-      if(existSupplier) throw new BadRequestException(`Já existe um fornecedor com esse nome`);
+    if (dto.name && supplier.name !== dto.name) {
+      existsSupplier = await this.supplierRepository.existsBy({name: dto.name});
+      if(existsSupplier) throw new BadRequestException(`Já existe um fornecedor com esse nome`);
     }
       
-    if (supplier.cnpj !== dto.cnpj) {
-      existSupplier = await this.supplierRepository.existsBy({cnpj: dto.cnpj})
-      if(existSupplier) throw new BadRequestException(`Já existe um fornecedor com esse CNPJ`);
+    if (dto.cnpj && supplier.cnpj !== dto.cnpj) {
+      existsSupplier = await this.supplierRepository.existsBy({cnpj: dto.cnpj});
+      if(existsSupplier) throw new BadRequestException(`Já existe um fornecedor com esse CNPJ`);
     }
       
-    if (supplier.phone !== dto.phone) {
-      existSupplier = await this.supplierRepository.existsBy({phone: dto.phone})
-      if(existSupplier) throw new BadRequestException(`Já existe um fornecedor com esse Telefone`);
+    if (dto.phone && supplier.phone !== dto.phone) {
+      existsSupplier = await this.supplierRepository.existsBy({phone: dto.phone});
+      if(existsSupplier) throw new BadRequestException(`Já existe um fornecedor com esse Telefone`);
     }
 
     const updatedSupplier = this.supplierRepository.merge(supplier,dto);
-    return await this.supplierRepository.save(updatedSupplier)
+    return await this.supplierRepository.save(updatedSupplier);
   }
 }

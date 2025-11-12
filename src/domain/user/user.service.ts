@@ -16,7 +16,6 @@ export class UserService {
     return await this.repository.filterExists(filter);
   }
   
-
   async findAll(filter?:FilterDto) {
     return await this.repository.filterAll(filter)
   }
@@ -32,26 +31,32 @@ export class UserService {
   }
 
   async create(dto: CreateUserDto): Promise<User> {
-    const emailExists = await this.exists({ email: dto.email });
-    if (emailExists) {
-      throw new BadRequestException(`Email ${dto.email} já está sendo utilizado`);
-    }
+    let existsUser = false;
+
+    existsUser = await this.exists({ email: dto.email });
+    if (existsUser) throw new BadRequestException(`Email ${dto.email} já está sendo utilizado`);
+
+    existsUser = await this.exists({ phone: dto.phone });
+    if (existsUser) throw new BadRequestException(`Já existe um usuário com esse Telefone`);
 
     const user = this.repository.create(dto);
-
     return await this.repository.save(user);
   }
 
   async update(id:number,dto:UpdateUserDto){
+    let existsUser = false;
 
     const user = await this.findOne(id);
-    if(!user) throw new NotFoundException(`Usuário com id ${id} não encontrada`)
+    if(!user) throw new NotFoundException(`Usuário com id ${id} não encontrada`);
 
-    if (user.email !== dto.email) {
-      const emailExists = await this.exists({ email: (dto.email ? dto.email : "") });
-      if (emailExists) {
-        throw new BadRequestException(`Email ${dto.email} já está sendo utilizado`);
-      }
+    if (dto.email && user.email !== dto.email) {
+      existsUser = await this.exists({ email: dto.email });
+      if (existsUser) throw new BadRequestException(`Email ${dto.email} já está sendo utilizado`);
+    }
+
+    if (dto.phone && user.phone !== dto.phone) {
+      existsUser = await this.exists({ phone: dto.phone });
+      if (existsUser) throw new BadRequestException(`Já existe um usuário com esse Telefone`);
     }
 
     const updatedUser = this.repository.merge(user,dto);
