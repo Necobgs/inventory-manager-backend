@@ -53,7 +53,7 @@ export class DashboardService {
     const category  = await this.categoryService.findAll(filterDto);
     const supplier  = await this.supplierService.findAll(filterDto);
     const inventory = await this.inventoryService.findAll(filterDto);
-    const movement  = (await this.movementService.findAll(filterDto)).map(({inventory,user,...rest})=>rest);
+    const movement  = (await this.movementService.findAll(filterDto));
 
     return {
       category,
