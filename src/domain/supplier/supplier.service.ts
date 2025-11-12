@@ -19,7 +19,9 @@ export class SupplierService {
   }
 
   async findOne(id: number) {
-    return await this.supplierRepository.findOneByOrFail({id});
+    const supplier = await await this.supplierRepository.findOneBy({id});
+    if(!supplier) throw new NotFoundException('Fornecedor não encontrado')
+    return supplier;
   }
 
   async update(id: number, dto: UpdateSupplierDto) {

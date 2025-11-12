@@ -11,6 +11,6 @@ export class DashboardController {
   @Get()
   @Public()
   async findAll(){
-    return this.findAll()
+    return await this.dashboardService.findAll()
   }
 }

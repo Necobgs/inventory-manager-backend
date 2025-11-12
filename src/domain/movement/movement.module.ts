@@ -13,5 +13,6 @@ import { InventoryModule } from '../inventory/inventory.module';
   InventoryModule],
   controllers: [MovementController],
   providers: [MovementService,MovementRepository],
+  exports:[MovementService]
 })
 export class MovementModule {}

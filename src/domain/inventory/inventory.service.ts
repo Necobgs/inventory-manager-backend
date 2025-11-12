@@ -20,13 +20,16 @@ export class InventoryService {
   }
 
   async create(dto: CreateInventoryDto) {
-    const existsInventory = await this.exists(dto.description);
+    
     const category = await this.categoryService.findOne(dto.category_id);
     if(!category) throw new BadRequestException('Categoria informada não encontrada');
+    
     const supplier = await this.supplierService.findOne(dto.supplier_id)
     if(!supplier) throw new BadRequestException('Fornecedor informado não encontrado');
+    
     const inventory = this.inventoryRepository.create();
     Object.assign(inventory,dto,{category},{supplier})
+    
     return await this.inventoryRepository.save(inventory);
   }
 
@@ -35,7 +38,9 @@ export class InventoryService {
   }
 
   async findOne(id: number) {
-    return await this.inventoryRepository.findOneByOrFail({id});
+    const inventory = await await this.inventoryRepository.findOneBy({id});
+    if(!inventory) throw new NotFoundException('Item não encontrado')
+    return inventory;
   }
 
   async update(id: number, updateInventoryDto: UpdateInventoryDto) {

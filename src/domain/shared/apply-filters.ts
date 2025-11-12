@@ -34,410 +34,297 @@ export interface LogicalFilter {
   $not?: Filter;
 }
 
-/**
- * The `filter` parameter can include logical operators (`$or`, `$and`, `$not`) as well as field-specific
- * comparison operators (e.g., `$eq`, `$ne`, `$in`, `$like`, etc.).
- *
- * ### Supported Logical Operators:
- * - `$or`: Combine multiple conditions where any one condition can be true.
- * - `$and`: Combine multiple conditions where all conditions must be true.
- * - `$not`: Negate a condition or group of conditions.
- *
- * ### Supported Field Comparison Operators:
- * - `$eq`: Equal to a value.
- * - `$ne`: Not equal to a value.
- * - `$gt`: Greater than a value.
- * - `$gte`: Greater than or equal to a value.
- * - `$lt`: Less than a value.
- * - `$lte`: Less than or equal to a value.
- * - `$in`: Value must be within an array of values.
- * - `$nin`: Value must not be within an array of values.
- * - `$like`: String matches a pattern (wildcard `%`).
- * - `$ilike`: Case-insensitive string matching (PostgreSQL).
- * - `$null`: Check if the value is NULL or NOT NULL.
- * - `$between`: Value must be between two values (inclusive).
- * - `$contains`: Array contains a specific value (PostgreSQL).
- * - `$contained`: Array is contained within another array (PostgreSQL).
- * - `$overlap`: Arrays overlap (share common elements).
- * - `$startsWith`: String starts with a given prefix.
- * - `$endsWith`: String ends with a given suffix.
- *
- * @example
- * // Basic Equality
- * const filter = { "name": { "$eq": "John" } };
- *
- * // Not equal to
- * const filter = { "age": { "$ne": 30 } };
- *
- * // Greater than
- * const filter = { "age": { "$gt": 25 } };
- *
- * // Less than or equal to
- * const filter = { "salary": { "$lte": 50000 } };
- *
- * // In an array
- * const filter = { "status": { "$in": ["active", "pending"] } };
- *
- * // Not in an array
- * const filter = { "role": { "$nin": ["admin", "moderator"] } };
- *
- * // LIKE pattern matching
- * const filter = { "name": { "$like": "%Smith%" } };
- *
- * // Case-insensitive ILIKE matching (PostgreSQL)
- * const filter = { "email": { "$ilike": "%@gmail.com" } };
- *
- * // NULL check
- * const filter = { "deletedAt": { "$null": true } };  // checks if `deletedAt` IS NULL
- * const filter = { "deletedAt": { "$null": false } }; // checks if `deletedAt` IS NOT NULL
- *
- * // Between two values (e.g., range filtering)
- * const filter = { "createdAt": { "$between": ["2023-01-01", "2023-12-31"] } };
- *
- * // Array contains a value (PostgreSQL specific)
- * const filter = { "tags": { "$contains": "featured" } };
- *
- * // Array is contained within another array (PostgreSQL specific)
- * const filter = { "tags": { "$contained": ["featured", "popular"] } };
- *
- * // Arrays overlap (share any common elements, PostgreSQL specific)
- * const filter = { "tags": { "$overlap": ["new", "featured"] } };
- *
- * // String starts with
- * const filter = { "username": { "$startsWith": "admin" } };
- *
- * // String ends with
- * const filter = { "filename": { "$endsWith": ".jpg" } };
- *
- * // Logical Operators
- * const filter = {
- *   "$or": [
- *     { "age": { "$lt": 18 } },
- *     { "age": { "$gt": 60 } }
- *   ]
- * };
- *
- * const filter = {
- *   "$and": [
- *     { "status": { "$eq": "active" } },
- *     { "age": { "$gte": 18 } }
- *   ]
- * };
- *
- * const filter = {
- *   "$not": { "status": { "$eq": "inactive" } }
- * };
- */
 export type Filter = string | Condition | LogicalFilter;
 
 export interface Item {
   [key: string]: any;
 }
 
+// === CONJUNTO DE OPERADORES VÁLIDOS ===
+const VALID_OPERATORS = new Set<Operator>([
+  '$eq', '$ne', '$gt', '$gte', '$lt', '$lte',
+  '$in', '$nin', '$like', '$ilike', '$null',
+  '$between', '$contains', '$contained', '$overlap',
+  '$startsWith', '$endsWith'
+]);
+
+const LOGICAL_OPERATORS = new Set<LogicalOperator>(['$or', '$and', '$not']);
+
 /**
- * Applies filtering conditions to a TypeORM query builder based on a provided filter object.
- *
- * @param qb - TypeORM SelectQueryBuilder to apply the filters to.
- * @param target - The target entity class or table name being queried.
- * @param alias - The alias for the main entity being queried (default: "entity").
- * @param filter - The filter object containing conditions and logical operators.
- *
- * @returns The modified SelectQueryBuilder with applied conditions.
+ * Aplica filtros ao QueryBuilder do TypeORM de forma segura e robusta.
  */
 export function applyFilters<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
   target: EntityTarget<T>,
-  alias: string,
+  alias: string = 'entity',
   filter: Filter,
 ): SelectQueryBuilder<T> {
-  const filterParsed = parseFilter(filter);
-  if (!isObject(filterParsed)) return qb;
-  filter = filterParsed;
+  const parsed = parseFilter(filter);
+  if (!parsed || !isObject(parsed)) return qb;
 
-  Object.keys(filter).forEach((key) => {
-    const value = filter[key as keyof Filter];
+  // Log opcional para debug
+  // console.log('[applyFilters] Filtro processado:', JSON.stringify(parsed, null, 2));
 
-    switch (key) {
-      case '$or':
-        const orConditions = (value as Filter[]).map((subFilter) =>
-          applyFilters(qb, target, alias, subFilter).getQuery(),
-        );
-        qb.andWhere(`(${orConditions.join(' OR ')})`);
-        break;
-
-      case '$and':
-        const andConditions = (value as Filter[]).map((subFilter) =>
-          applyFilters(qb, target, alias, subFilter).getQuery(),
-        );
-        qb.andWhere(`(${andConditions.join(' AND ')})`);
-        break;
-
-      case '$not':
-        const notCondition = applyFilters(
-          qb,
-          target,
-          alias,
-          value as Filter,
-        ).getQuery();
-        qb.andWhere(`NOT (${notCondition})`);
-        break;
-
-      default:
-        applyCondition(qb, target, alias, key, value);
+  Object.entries(parsed).forEach(([key, value]) => {
+    if (LOGICAL_OPERATORS.has(key as LogicalOperator)) {
+      applyLogicalOperator(qb, target, alias, key as LogicalOperator, value);
+    } else {
+      applyFieldCondition(qb, target, alias, key, value);
     }
   });
-  
+
   return qb;
 }
 
-function parseFilter(filter: Filter): Filter | null {
-  if (!filter) return null;
-  if (typeof filter === 'string') {
-    try {
-      filter = JSON.parse(filter);
-    } catch {
-      return null;
-    }
+/**
+ * Trata operadores lógicos: $or, $and, $not
+ */
+function applyLogicalOperator<T extends ObjectLiteral>(
+  qb: SelectQueryBuilder<T>,
+  target: EntityTarget<T>,
+  alias: string,
+  operator: LogicalOperator,
+  value: any,
+): void {
+  if (!Array.isArray(value) && operator !== '$not') {
+    return;
   }
-  return filter;
+
+  const conditions = operator === '$not'
+    ? [value]
+    : value as Filter[];
+
+  const subQueries = conditions
+    .filter(Boolean)
+    .map(subFilter => {
+      const subQb = qb.connection
+        .createQueryBuilder(target, `${alias}_sub`)
+        .select(`${alias}_sub.id`);
+      applyFilters(subQb, target, `${alias}_sub`, subFilter);
+      return `(${subQb.getQuery()})`;
+    });
+
+  if (subQueries.length === 0) return;
+
+  const joined = subQueries.join(` ${operator === '$or' ? 'OR' : 'AND'} `);
+  const finalCondition = operator === '$not'
+    ? `NOT (${joined})`
+    : `(${joined})`;
+
+  qb.andWhere(finalCondition);
 }
 
-function applyCondition<T extends ObjectLiteral>(
+/**
+ * Aplica condição em um campo (simples ou relacional)
+ */
+function applyFieldCondition<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
   target: EntityTarget<T>,
   alias: string,
   path: string,
   value: any,
 ): void {
-  value = transformValue(value);
+  const normalized = normalizeConditionValue(value);
+  if (!normalized || typeof normalized !== 'object') return;
+
   if (path.includes('.')) {
-    applyRelationCondition(qb, target, alias, path, value);
+    applyRelationCondition(qb, target, alias, path, normalized);
   } else {
-    applySimpleCondition(qb, alias, path, value);
+    applySimpleCondition(qb, alias, path, normalized);
   }
 }
 
+/**
+ * Normaliza valor: primitivo → { $eq: value }, objeto com $ → mantém
+ */
+function normalizeConditionValue(value: any): any {
+  if (value === null) return { $null: true };
+
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    return { $eq: value };
+  }
+
+  const keys = Object.keys(value);
+  if (keys.length === 0) return { $eq: null };
+
+  // Se já tem operador válido
+  if (keys.some(k => VALID_OPERATORS.has(k as Operator))) {
+    return value;
+  }
+
+  // Caso contrário, assume valor direto
+  return { $eq: value };
+}
+
+/**
+ * Condição em campo simples (não relacional)
+ */
+function applySimpleCondition<T extends ObjectLiteral>(
+  qb: SelectQueryBuilder<T>,
+  alias: string,
+  field: string,
+  condition: any,
+): void {
+  Object.entries(condition).forEach(([op, val]) => {
+    if (!VALID_OPERATORS.has(op as Operator)) {
+      throw new Error(`Operador inválido: ${op}`);
+    }
+    evaluateOperator(qb, `${alias}.${field}`, op as Operator, val);
+  });
+}
+
+/**
+ * Condição em relação (user.profile.name)
+ */
 function applyRelationCondition<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
   target: EntityTarget<T>,
   alias: string,
   path: string,
-  value: any,
+  condition: any,
 ): void {
-  const metadata = qb.connection.getMetadata(target);
   const [relation, field] = path.split('.');
+  const metadata = qb.connection.getMetadata(target);
+  const relationMeta = metadata.findRelationWithPropertyPath(relation);
 
-  // Check if relation exists in the metadata
-  if (metadata.findRelationWithPropertyPath(relation)) {
-    const relationAlias = `${alias}_${relation}`;
-    Object.keys(value).forEach((operator: string) => {
-      evaluateOperatorForNestedRelation(
-        qb,
-        target,
-        alias,
-        relation,
-        relationAlias,
-        field,
-        operator as Operator,
-        value[operator],
-      );
-    });
+  if (!relationMeta) {
+    throw new Error(`Relação não encontrada: ${relation}`);
   }
-}
 
-function applySimpleCondition<T extends ObjectLiteral>(
-  qb: SelectQueryBuilder<T>,
-  alias: string,
-  path: string,
-  value: any,
-): void {
-  Object.keys(value).forEach((operator: string) => {
-    evaluateOperator(qb, path, operator as Operator, value[operator], alias);
+  const relationAlias = `${alias}_${relation}`;
+
+  Object.entries(condition).forEach(([op, val]) => {
+    if (!VALID_OPERATORS.has(op as Operator)) {
+      throw new Error(`Operador inválido: ${op}`);
+    }
+
+    if (relationMeta.isManyToOne || relationMeta.isOneToOne) {
+      qb.leftJoin(`${alias}.${relation}`, relationAlias);
+      const path = `"${relationAlias}"."${field}"`;
+      const { condition: cond, params } = generateSqlCondition(field, path, op as Operator, val);
+      qb.andWhere(cond, params);
+    } else {
+      // Many-to-Many
+      handleManyToManyCondition(qb, target, alias, relation, relationAlias, field, op as Operator, val);
+    }
   });
 }
 
-function transformValue(value: any): any {
-  if (value === null) {
-    return { $null: true };
-  }
-  if (!(typeof value === 'object' && !Array.isArray(value))) {
-    return { $eq: value };
-  }
-  return value;
-}
-
-function evaluateOperator<T extends ObjectLiteral>(
-  qb: SelectQueryBuilder<T>,
-  field: string,
-  operator: Operator,
-  expectedValue: any,
-  alias: string,
-): void {
-  const path = `${alias}.${field}`;
-  const { condition, params } = generateSqlForOperator(
-    field,
-    path,
-    operator,
-    expectedValue,
-  );
-  qb.andWhere(condition, params);
-}
-
-function evaluateOperatorForNestedRelation<T extends ObjectLiteral>(
+function handleManyToManyCondition<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
   target: EntityTarget<T>,
-  targetAlias: string,
+  alias: string,
   relation: string,
   relationAlias: string,
   field: string,
   operator: Operator,
-  expectedValue: any,
+  value: any,
 ): void {
-  const path = `"${relationAlias}"."${field}"`;
+  const metadata = qb.connection.getMetadata(target);
+  const rel = metadata.findRelationWithPropertyPath(relation)!;
+  const joinTable = rel.joinTableName || `${metadata.tableName}_${rel.propertyName}`;
+  const joinCol = rel.joinColumns[0].databaseName;
+  const invJoinCol = rel.inverseJoinColumns[0].databaseName;
+  const invTable = rel.inverseEntityMetadata.tableName;
 
-  const { condition, params } = generateSqlForOperator(
-    field,
-    path,
-    operator,
-    expectedValue,
-  );
+  const path = `"${relationAlias}_inv"."${field}"`;
+  const { condition, params } = generateSqlCondition(field, path, operator, value);
 
-  const targetMetadata = qb.connection.getMetadata(target);
-  const relationMetadata = targetMetadata.findRelationWithPropertyPath(relation);
+  const subQuery = `
+    SELECT "${alias}_main"."id"
+    FROM "${metadata.givenTableName}" "${alias}_main"
+    INNER JOIN "${joinTable}" "${relationAlias}_join"
+      ON "${relationAlias}_join"."${joinCol}" = "${alias}_main"."id"
+    INNER JOIN "${invTable}" "${relationAlias}_inv"
+      ON "${relationAlias}_inv"."id" = "${relationAlias}_join"."${invJoinCol}"
+    WHERE ${condition}
+  `;
 
-  if (!relationMetadata) {
-    throw new Error(`Relation ${relation} not found in entity ${targetMetadata.name}`);
-  }
-
-
-  if (relationMetadata.isManyToOne || relationMetadata.isOneToOne) {
-    qb.leftJoinAndSelect(`${targetAlias}.${relation}`, relationAlias);
-    qb.andWhere(condition, params);
-  } else {
-    const joinTableName = relationMetadata.joinTableName || `${targetMetadata.tableName}_${relationMetadata.propertyName}`;
-    const joinColumn = relationMetadata.joinColumns?.[0]?.databaseName || `${targetMetadata.tableName}Id`;
-    const inverseJoinColumn = relationMetadata.inverseJoinColumns?.[0]?.databaseName || `${relationMetadata.inverseEntityMetadata.tableName}Id`;
-
-    qb.andWhere(
-      `"${targetAlias}"."id" IN (
-        SELECT "${targetAlias}_sub"."id"
-        FROM "${targetMetadata.givenTableName}" "${targetAlias}_sub"
-        JOIN "${joinTableName}" "${relationAlias}_join"
-        ON "${relationAlias}_join"."${joinColumn}" = "${targetAlias}_sub"."id"
-        JOIN "${relationMetadata.inverseEntityMetadata.tableName}" "${relationAlias}_sub"
-        ON "${relationAlias}_sub"."id" = "${relationAlias}_join"."${inverseJoinColumn}"
-        WHERE ${condition}
-      )`,
-      params,
-    );
-  }
+  qb.andWhere(`"${alias}"."id" IN (${subQuery})`, params);
 }
 
-function generateSqlForOperator(
+/**
+ * Gera SQL + parâmetros para operador
+ */
+function generateSqlCondition(
   field: string,
   path: string,
   operator: Operator,
-  expectedValue: any,
+  value: any,
 ): { condition: string; params: Record<string, any> } {
-  let condition: string;
-  let params: Record<string, any> = { [field]: expectedValue };
+  const param = (name: string, val: any) => ({ [name]: val });
 
   switch (operator) {
-    case '$eq':
-      condition = `${path} = :${field}`;
-      break;
-
-    case '$ne':
-      condition = `${path} != :${field}`;
-      break;
-
-    case '$gt':
-      condition = `${path} > :${field}`;
-      break;
-
-    case '$gte':
-      condition = `${path} >= :${field}`;
-      break;
-
-    case '$lt':
-      condition = `${path} < :${field}`;
-      break;
-
-    case '$lte':
-      condition = `${path} <= :${field}`;
-      break;
+    case '$eq': return { condition: `${path} = :${field}`, params: param(field, value) };
+    case '$ne': return { condition: `${path} != :${field}`, params: param(field, value) };
+    case '$gt': return { condition: `${path} > :${field}`, params: param(field, value) };
+    case '$gte': return { condition: `${path} >= :${field}`, params: param(field, value) };
+    case '$lt': return { condition: `${path} < :${field}`, params: param(field, value) };
+    case '$lte': return { condition: `${path} <= :${field}`, params: param(field, value) };
 
     case '$in':
-      if (!Array.isArray(expectedValue)) {
-        throw new Error(
-          `Operator $in expects an array but received: ${typeof expectedValue}`,
-        );
-      }
-      condition = `${path} IN (:...${field})`;
-      break;
+      if (!Array.isArray(value)) throw new Error('$in requer array');
+      return { condition: `${path} IN (:...${field})`, params: param(field, value) };
 
     case '$nin':
-      if (!Array.isArray(expectedValue)) {
-        throw new Error(
-          `Operator $nin expects an array but received: ${typeof expectedValue}`,
-        );
-      }
-      condition = `${path} NOT IN (:...${field})`;
-      break;
+      if (!Array.isArray(value)) throw new Error('$nin requer array');
+      return { condition: `${path} NOT IN (:...${field})`, params: param(field, value) };
 
-    case '$like':
-      condition = `${path} LIKE :${field}`;
-      break;
-
-    case '$ilike':
-      condition = `${path} ILIKE :${field}`;
-      break;
+    case '$like': return { condition: `${path} LIKE :${field}`, params: param(field, value) };
+    case '$ilike': return { condition: `${path} ILIKE :${field}`, params: param(field, value) };
 
     case '$null':
-      if (expectedValue === true) {
-        condition = `${path} IS NULL`;
-        params = {};
-      } else {
-        condition = `${path} IS NOT NULL`;
-        params = {};
-      }
-      break;
+      return value === true
+        ? { condition: `${path} IS NULL`, params: {} }
+        : { condition: `${path} IS NOT NULL`, params: {} };
 
     case '$between':
-      if (!Array.isArray(expectedValue) || expectedValue.length !== 2) {
-        throw new Error(
-          `Operator $between expects an array of two elements but received: ${typeof expectedValue}`,
-        );
-      }
-      condition = `${path} BETWEEN :start AND :end`;
-      params = { start: expectedValue[0], end: expectedValue[1] };
-      break;
+      if (!Array.isArray(value) || value.length !== 2) throw new Error('$between requer [min, max]');
+      return { condition: `${path} BETWEEN :${field}_start AND :${field}_end`, params: {
+        [`${field}_start`]: value[0],
+        [`${field}_end`]: value[1],
+      }};
 
-    case '$contains':
-      condition = `${path} @> :${field}`;
-      break;
-
-    case '$contained':
-      condition = `${path} <@ :${field}`;
-      break;
-
-    case '$overlap':
-      condition = `${path} && :${field}`;
-      break;
+    case '$contains': return { condition: `${path} @> :${field}`, params: param(field, value) };
+    case '$contained': return { condition: `${path} <@ :${field}`, params: param(field, value) };
+    case '$overlap': return { condition: `${path} && :${field}`, params: param(field, value) };
 
     case '$startsWith':
-      condition = `${path} LIKE :${field}`;
-      params = { [field]: `${expectedValue}%` };
-      break;
+      return { condition: `${path} LIKE :${field}`, params: param(field, `${value}%`) };
 
     case '$endsWith':
-      condition = `${path} LIKE :${field}`;
-      params = { [field]: `%${expectedValue}` };
-      break;
+      return { condition: `${path} LIKE :${field}`, params: param(field, `%${value}`) };
 
     default:
-      throw new Error(`Unsupported operator: ${operator}`);
+      throw new Error(`Operador não suportado: ${operator}`);
   }
+}
 
-  return { condition, params };
+/**
+ * Avalia operador e aplica `andWhere`
+ */
+function evaluateOperator<T extends ObjectLiteral>(
+  qb: SelectQueryBuilder<T>,
+  path: string,
+  operator: Operator,
+  value: any,
+): void {
+  const { condition, params } = generateSqlCondition(path.split('.').pop()!, path, operator, value);
+  qb.andWhere(condition, params);
+}
+
+/**
+ * Parse seguro de string JSON → objeto
+ */
+function parseFilter(filter: Filter): Filter | null {
+  if (!filter) return null;
+  if (typeof filter === 'string') {
+    try {
+      return JSON.parse(filter);
+    } catch (err) {
+      console.warn('[applyFilters] JSON inválido:', filter);
+      return null;
+    }
+  }
+  return filter;
 }

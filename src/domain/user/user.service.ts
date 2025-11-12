@@ -22,7 +22,9 @@ export class UserService {
   }
 
   async findOne(id:number) {
-    return await this.repository.findOneByOrFail({id})
+    const user = await await this.repository.findOneBy({id});
+    if(!user) throw new NotFoundException('Usuario não encontrado')
+    return user;
   }
 
   async filterOne(filter:Filter) {

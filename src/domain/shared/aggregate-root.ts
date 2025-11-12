@@ -5,13 +5,13 @@ import { BaseEntity } from "./base-entity";
 export abstract class AggregateRoot extends BaseEntity{
 
     @CreateDateColumn({
-        type:'time with time zone',
+        type:'timestamptz',
         default: () => 'CURRENT_TIMESTAMP'
     })
     created_at:Date;
 
     @UpdateDateColumn({
-        type:'time with time zone',
+        type:'timestamptz',
         default:()=> 'CURRENT_TIMESTAMP',
         onUpdate: 'CURRENT_TIMESTAMP'
     })
